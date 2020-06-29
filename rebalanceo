@@ -15,9 +15,6 @@ start = dt.date.today()-dt.timedelta(365*años)
 end = dt.date.today()
 
 tickers = ["GGAL", "BMA", "YPF", "TGS", "CRESY", "IRS", "TEO", "MELI", "EDN", "BBAR", "TX"]
-#tickers = ["AAPL", "AMZN", "NFLX", "FB", "KO", "GE", "V", "JPM", "SPY", "XOM", "TSLA", "VZ",'BAC','BABA']
-#tickers = ["GGAL", "BMA", "YPF", "PAM", "TGS", "CRESY", "IRS", "TEO", "MELI",
-#           "EDN", "BBAR", "CEPU", "TX", "SUPV", "LOMA"]
 
 data =  yf.download(tickers, start=start, end=end, interval="1wk")['Adj Close']
 yields = data.pct_change()
@@ -27,8 +24,8 @@ yieldsPast = yields.shift()
 best, worst = pd.DataFrame(), pd.DataFrame()
 for idx, row in yieldsPast.iterrows():
     ordenadas = row.sort_values()
-    best5_tickers = list(ordenadas.index[-6:-1])
-    worst5_tickers = list(ordenadas.index[0:2])
+    best5_tickers = list(ordenadas.index[-5:])
+    worst5_tickers = list(ordenadas.index[:5])
     week = yields.loc[yields.index==idx]
     weekBest = week.transpose().loc[best5_tickers]
     weekWorst = week.transpose().loc[worst5_tickers]
