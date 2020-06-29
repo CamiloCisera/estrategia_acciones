@@ -76,7 +76,7 @@ for i in range(años+1):
 print(results)
 
 #====================================================================
-#           Intento de ver correlaciones (Camilo)
+#           Intento de ver correlaciones y covarianzas (Camilo)
 #====================================================================
 
 tickers = ["GGAL", "BMA", "YPF", "TGS", "CRESY", "IRS", "TEO", "MELI", "EDN", "BBAR", "TX"]
@@ -98,3 +98,10 @@ BBAR.rolling(window=90).corr(other=TEO).plot()
 EDN.rolling(window=90).corr(other=MELI).plot()
 TX.rolling(window=90).corr(other=TGS).plot()
 CRESY.rolling(window=90).corr(other=TEO).plot()
+
+GGAL.rolling(window=90).cov(other=BBAR).plot()
+GGAL.rolling(window=90).cov(other=TGS).plot()
+BBAR.rolling(window=90).cov(other=TEO).plot()
+EDN.rolling(window=90).cov(other=MELI).plot()
+TX.rolling(window=90).cov(other=TGS).plot()
+CRESY.rolling(window=90).cov(other=TEO).plot()
