@@ -74,3 +74,27 @@ for i in range(años+1):
     ax2[row][col].set_title(str(end.year-años +i), y=0.83, fontsize=20, alpha=0.4)
     plt.setp(ax2[row][col].get_xticklabels(), visible=False)    
 print(results)
+
+#====================================================================
+#           Intento de ver correlaciones (Camilo)
+#====================================================================
+
+tickers = ["GGAL", "BMA", "YPF", "TGS", "CRESY", "IRS", "TEO", "MELI", "EDN", "BBAR", "TX"]
+data =  yf.download(tickers, period="max")['Adj Close']
+data.dropna(inplace=True)
+yields = data.pct_change()
+GGAL = yields["GGAL"]
+BBAR = yields["BBAR"]
+TGS = yields["TGS"]
+TEO = yields["TEO"]
+MELI = yields["MELI"]
+EDN = yields["EDN"]
+TX = yields["TX"]
+CRESY = yields["CRESY"]
+
+GGAL.rolling(window=90).corr(other=BBAR).plot()
+GGAL.rolling(window=90).corr(other=TGS).plot()
+BBAR.rolling(window=90).corr(other=TEO).plot()
+EDN.rolling(window=90).corr(other=MELI).plot()
+TX.rolling(window=90).corr(other=TGS).plot()
+CRESY.rolling(window=90).corr(other=TEO).plot()
