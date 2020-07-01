@@ -1,9 +1,9 @@
 #==============================================================================
-#           Código compartido entre Juan Pablo Pisano @JohnGalt_is_www
-#                           y Camilo Cisera
+#           Código compartido entre Juan Pablo Pisano y Camilo Cisera
+#                        @JohnGalt_is_www ; @camilocr3
 #==============================================================================
 
-import pandas as pd
+import pandas as pd, numpy as np
 import datetime as dt
 import yfinance as yf
 import matplotlib.pyplot as plt
@@ -91,6 +91,7 @@ plt.title("Estrategias de rebalanceo semanal (Crisis 2011/2012)",
           fontsize=16, fontweight="bold")
 plt.legend(fontsize=16)
 plt.ylabel("Enero de 2011 = 1",fontsize=16, fontweight="bold")
+plt.show()
 
 #Preparo grafico 3 = Recuperación 2012-2018
 base1b = pd.DataFrame()
@@ -108,6 +109,7 @@ plt.title("Estrategias de rebalanceo semanal (Recuperación 2012-2018)",
           fontsize=16, fontweight="bold")
 plt.legend(fontsize=16)
 plt.ylabel("Noviembre de 2012 = 1",fontsize=16, fontweight="bold")
+plt.show()
 
 #Preparo grafico 4 = Crisis 2018-¿2020?
 base1c = pd.DataFrame()
@@ -125,6 +127,7 @@ plt.title("Estrategias de rebalanceo semanal (Crisis 2018-2020)",
           fontsize=16, fontweight="bold")
 plt.legend(fontsize=16)
 plt.ylabel("Enero de 2018 = 1",fontsize=16, fontweight="bold")
+plt.show()
 
 #Grafico por años
 columns = 3
@@ -149,39 +152,34 @@ for i in range(años+1):
 print(results)
 
 #====================================================================
-#           Intento de ver correlaciones y covarianzas
+#           correlaciones y covarianzas
 #====================================================================
 
-tickers = ["GGAL", "BMA", "YPF", "TGS", "CRESY", "IRS", "TEO", "MELI", "EDN", "BBAR", "TX"]
-data =  yf.download(tickers, period="max")['Adj Close']
-data.dropna(inplace=True)
-yields = data.pct_change()
-GGAL = yields["GGAL"]
-BBAR = yields["BBAR"]
-TGS = yields["TGS"]
-TEO = yields["TEO"]
-MELI = yields["MELI"]
-EDN = yields["EDN"]
-TX = yields["TX"]
-CRESY = yields["CRESY"]
+pearson = yields.groupby([yields.index.year,yields.index.month]).corr()
+covarianzas = yields.groupby([yields.index.year,yields.index.month]).cov()*100
+rendimientos = yields.groupby([yields.index.year,yields.index.month]).mean()*100
 
-GGAL.rolling(window=250).corr(other=BBAR).plot()
-GGAL.rolling(window=250).corr(other=TGS).plot()
-BBAR.rolling(window=250).corr(other=TEO).plot()
-EDN.rolling(window=250).corr(other=MELI).plot()
-TX.rolling(window=250).corr(other=TGS).plot()
-CRESY.rolling(window=250).corr(other=TEO).plot()
+años = list(yields.index.year.unique())
+idx = pd.MultiIndex.from_product( [años, list(range(1,13)) ])
+dfCov = pd.DataFrame(np.nan, idx, ['Media'])
+dfPearson = pd.DataFrame(np.nan, idx, ['Media'])
+dfYields = pd.DataFrame(np.nan, idx, ['Media'])
 
-GGAL.rolling(window=250).cov(other=BBAR).plot()
-GGAL.rolling(window=250).cov(other=TGS).plot()
-BBAR.rolling(window=250).cov(other=TEO).plot()
-EDN.rolling(window=250).cov(other=MELI).plot()
-TX.rolling(window=250).cov(other=TGS).plot()
-CRESY.rolling(window=250).cov(other=TEO).plot()
+for año in años:
+    for mes in range(1,13):
+        try:
+            dfCov.loc[año,mes]['Media'] = round(covarianzas.loc[año,mes].mean().mean(),2)
+            dfPearson.loc[año,mes]['Media'] = round(pearson.loc[año,mes].mean().mean(),2)
+            dfYields.loc[año,mes]['Media'] = round(rendimientos.loc[año,mes].mean(),2)
+        except:
+            pass
 
-GGAL.rolling(window=100).cov(other=BBAR).plot()
-GGAL.rolling(window=100).cov(other=TGS).plot()
-BBAR.rolling(window=100).cov(other=TEO).plot()
-EDN.rolling(window=100).cov(other=MELI).plot()
-TX.rolling(window=100).cov(other=TGS).plot()
-CRESY.rolling(window=100).cov(other=TEO).plot()
+df = pd.concat([dfCov,dfPearson,dfYields], axis=1).dropna()
+df.columns = ['Covarianzas','Pearson','Yield']
+df['Percentil Yield ABS']  = df.Yield.abs().rank(pct=True).round(2)*100
+
+top10_Pearson = df.sort_values('Pearson', ascending=False).head(10)
+top10_Covarianzas = df.sort_values('Covarianzas', ascending=False).head(10)
+
+print(top10_Pearson, '\n', top10_Pearson.mean())
+print(top10_Covarianzas, '\n', top10_Covarianzas.mean())
